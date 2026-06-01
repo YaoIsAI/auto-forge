@@ -1,8 +1,12 @@
 # Forge - Multi-Phase Workflow Engine
 
-**[English](#english)** | **[中文](#中文)**
+> Claude Code 全自动多 Phase 工作流引擎 | Multi-phase workflow engine for Claude Code
+
+[English](#english-1) | [中文](#中文-1)
 
 ---
+
+<a name="english-1"></a>
 
 ## English
 
@@ -18,29 +22,22 @@ A multi-phase workflow engine for Claude Code with automatic task decomposition,
 
 ### Installation
 
-#### Option 1: Install from Marketplace (Recommended)
+**Option 1: Install from Marketplace (Recommended)**
 
 ```bash
 /plugin install auto-forge@claude-plugins-official
 ```
 
-> **Note**: This requires the PR to be approved. Check status: https://github.com/anthropics/claude-plugins-official/pull/2153
+> Note: Requires PR approval. Check status: https://github.com/anthropics/claude-plugins-official/pull/2153
 
-#### Option 2: Install from GitHub
+**Option 2: Install from GitHub**
 
 ```bash
-# Clone the repository
 git clone https://github.com/YaoIsAI/auto-forge.git
-
-# Create symbolic link
-# Windows (Git Bash)
-ln -s /path/to/auto-forge/.claude/skills/forge ~/.claude/skills/forge
-
-# Linux/macOS
 ln -s /path/to/auto-forge/.claude/skills/forge ~/.claude/skills/forge
 ```
 
-#### Option 3: Plugin Directory Test
+**Option 3: Plugin Directory Test**
 
 ```bash
 claude --plugin-dir /path/to/auto-forge
@@ -55,23 +52,9 @@ claude --plugin-dir /path/to/auto-forge
 /forge --log                 # View git history
 ```
 
-### Prerequisites
-
-- `git` - Version control
-- `jq` - JSON processing (manual install on Windows)
-- Build tools for your language (npm/cargo/python/go)
-
-#### Install jq (Windows)
-
-```bash
-# Using scoop
-scoop install jq
-
-# Or manual download
-curl -sL https://github.com/jqlang/jq/releases/latest/download/jq-windows-amd64.exe -o /c/Users/yao/.local/bin/jq.exe
-```
-
 ---
+
+<a name="中文-1"></a>
 
 ## 中文
 
@@ -84,33 +67,25 @@ Claude Code 的全自动多 Phase 工作流插件，支持并行 AI 评审和完
 - **Git 版本控制**: 每个 Phase 自动 commit，支持回撤
 - **断点续跑**: 支持从失败点恢复
 - **自动归档**: 每个 Phase 生成完整文档
-- **自动批准**: 在工作流中自动批准操作（可配置）
 
 ### 安装方式
 
-#### 方式 1: 从官方市场安装（推荐）
+**方式 1: 从官方市场安装（推荐）**
 
 ```bash
 /plugin install auto-forge@claude-plugins-official
 ```
 
-> **注意**: 需要 PR 审核通过。查看状态: https://github.com/anthropics/claude-plugins-official/pull/2153
+> 注意: 需要 PR 审核通过。查看状态: https://github.com/anthropics/claude-plugins-official/pull/2153
 
-#### 方式 2: 从 GitHub 安装
+**方式 2: 从 GitHub 安装**
 
 ```bash
-# 克隆仓库
 git clone https://github.com/YaoIsAI/auto-forge.git
-
-# 创建符号链接
-# Windows (Git Bash)
-ln -s /path/to/auto-forge/.claude/skills/forge ~/.claude/skills/forge
-
-# Linux/macOS
 ln -s /path/to/auto-forge/.claude/skills/forge ~/.claude/skills/forge
 ```
 
-#### 方式 3: 插件目录测试
+**方式 3: 插件目录测试**
 
 ```bash
 claude --plugin-dir /path/to/auto-forge
@@ -123,22 +98,6 @@ claude --plugin-dir /path/to/auto-forge
 /forge --resume              # 从断点继续
 /forge --revert 2            # 回撤到 Phase 2 完成后的状态
 /forge --log                 # 查看所有 Phase 的 git 历史
-```
-
-### 前置条件
-
-- `git` - 版本控制
-- `jq` - JSON 处理（Windows 需手动安装）
-- 各语言构建工具（npm/cargo/python/go）
-
-#### 安装 jq (Windows)
-
-```bash
-# 使用 scoop
-scoop install jq
-
-# 或手动下载
-curl -sL https://github.com/jqlang/jq/releases/latest/download/jq-windows-amd64.exe -o /c/Users/yao/.local/bin/jq.exe
 ```
 
 ---
