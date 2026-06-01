@@ -1,0 +1,19 @@
+{
+  "name": "auto-forge",
+  "version": "0.1.0",
+  "description": "全自动多 Phase 工作流引擎，支持多代理并行评审、断点续跑、自动归档",
+  "author": {
+    "name": "yao"
+  },
+  "license": "MIT",
+  "keywords": [
+    "auto",
+    "workflow",
+    "parallel",
+    "agents",
+    "review",
+    "automation"
+  ],
+  "skills": ["./skills/forge"],
+  "hooks": "./hooks/hooks.json"
+}

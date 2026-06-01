@@ -1,0 +1,29 @@
+{
+  "description": "Forge auto-approval and self-healing hooks",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/auto-approve.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/self-heal.sh",
+            "asyncRewake": true,
+            "rewakeMessage": "Forge workflow incomplete. Continuing to next phase.",
+            "rewakeSummary": "Forge self-heal triggered"
+          }
+        ]
+      }
+    ]
+  }
+}
