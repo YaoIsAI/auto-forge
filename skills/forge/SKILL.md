@@ -3,8 +3,8 @@ name: forge
 description: >
   全自动多 Phase 工作流引擎。自动拆分任务、编码、多代理并行评审、修复、归档。
   使用方式: /forge <任务描述>
-  触发词: forge, 全自动, 无人值守, parallel agents, 多代理评审
-argument-hint: <任务描述或需求文件路径> 或 --resume 从断点继续 或 --revert <phase-id> 回撤 或 --log 查看历史
+  触发词: forge, 全自动, 无人值守, 多代理评审, 并行代理
+argument-hint: <任务描述或需求文件路径> 或 --resume 从断点继续 或 --revert <阶段号> 回撤 或 --log 查看历史
 allowed-tools:
   - Read
   - Write
@@ -24,6 +24,12 @@ disable-model-invocation: true
 
 执行全自动多 Phase 工作流，包含并行 AI 评审，完整 Git 版本控制。
 
+## 前置条件
+
+- `git` - 版本控制
+- `jq` - JSON 处理
+- 各语言构建工具（npm/cargo/python/go）
+
 ## 使用方式
 
 ```
@@ -41,13 +47,15 @@ disable-model-invocation: true
 1. 解析参数 `$ARGUMENTS`
 2. 如果参数是文件路径，读取文件内容作为任务描述
 3. 如果参数包含 `--resume`，读取 `.forge-state.json` 恢复状态
-4. 如果参数包含 `--revert <phase-id>`，执行 git revert 回撤
+4. 如果参数包含 `--revert <阶段号>`，执行 git revert 回撤
 5. 如果参数包含 `--log`，显示 git 历史
 6. 否则创建新的 `.forge-state.json`
 7. 检查/初始化 git 仓库
 8. 根据任务复杂度拆分为多个 Phase（通常 3-7 个）
 
 ### 1.1 Git 处理策略
+
+根据项目当前的 Git 状态，采取不同的处理策略：
 
 **场景 1: 项目没有 git**
 ```bash
@@ -59,7 +67,7 @@ git commit -m "forge: initial commit before task"
 
 **场景 2: 项目已有 git（推荐）**
 ```bash
-# 1. 记录当前 HEAD（用于回撤）
+# 1. 记录当前 HEAD（用于参考）
 FORGE_INITIAL_COMMIT=$(git rev-parse HEAD)
 
 # 2. 可选：保存当前未提交的更改
@@ -79,26 +87,26 @@ git stash push -m "forge: save current work"
 
 对每个 Phase N 执行以下步骤：
 
-#### Step 2.1: 开发编码
+#### 步骤 2.1: 开发编码
 
 使用 Agent 工具执行编码任务：
 ```
 Agent({
   subagent_type: "general-purpose",
   description: "Phase {N}: {Phase名称}",
-  prompt: "你是开发工程师。执行以下任务：\n\n{phase_task_description}\n\n输出变更文件列表。"
+  prompt: "你是开发工程师。执行以下任务：\n\n{任务描述}\n\n输出变更文件列表。"
 })
 ```
 
-#### Step 2.2: 多代理并行评审
+#### 步骤 2.2: 多代理并行评审
 
 **同时**启动 4 个 Agent（在单条消息中发起多个 tool_use）：
 
-```javascript
-// Agent 1: 安全审计
+```text
+// 代理 1: 安全审计
 Agent({
   subagent_type: "general-purpose",
-  description: "Security audit",
+  description: "安全审计",
   prompt: `你是安全审计专家。审查以下代码变更的安全性。
 
 变更文件: {files_changed}
@@ -113,10 +121,10 @@ Agent({
 最后给出评分 (0-10) 和总结。`
 })
 
-// Agent 2: 性能审计
+// 代理 2: 性能审计
 Agent({
   subagent_type: "general-purpose",
-  description: "Performance audit",
+  description: "性能审计",
   prompt: `你是性能专家。审查以下代码的性能问题。
 
 变更文件: {files_changed}
@@ -127,10 +135,10 @@ Agent({
 最后给出评分 (0-10) 和总结。`
 })
 
-// Agent 3: 代码规范审计
+// 代理 3: 代码规范审计
 Agent({
   subagent_type: "general-purpose",
-  description: "Code style audit",
+  description: "代码规范审计",
   prompt: `你是代码规范专家。审查以下代码。
 
 变更文件: {files_changed}
@@ -141,10 +149,10 @@ Agent({
 最后给出评分 (0-10) 和总结。`
 })
 
-// Agent 4: 逻辑审查
+// 代理 4: 逻辑审查
 Agent({
-  subagent_type: "Explore",
-  description: "Logic review",
+  subagent_type: "general-purpose",
+  description: "逻辑审查",
   prompt: `你是业务逻辑专家。审查以下代码的逻辑完整性。
 
 变更文件: {files_changed}
@@ -156,22 +164,40 @@ Agent({
 })
 ```
 
-#### Step 2.3: 自动修复
+#### 步骤 2.3: 自动修复
 
 1. 收集所有 4 个评审代理的输出
-2. 按严重程度排序: Critical > High > Medium > Low
-3. 逐一修复（Critical 必须修复，其他可标记 TODO）
+2. 按严重程度排序: 严重（Critical） > 高（High） > 中（Medium） > 低（Low）
+3. 逐一修复（严重问题必须修复，其他可标记 TODO）
 4. 记录修复结果
 
-#### Step 2.4: 构建验证
+#### 步骤 2.4: 构建验证
+
+根据项目类型执行相应的构建和测试命令：
 
 ```bash
-# 根据项目类型执行（检测 package.json / Cargo.toml / requirements.txt）
-npm test / cargo test / python -m pytest
-npm run lint / cargo clippy / ruff check
+# Node.js 项目
+npm run build
+npm test
+npm run lint
+
+# Rust 项目
+cargo build
+cargo test
+cargo clippy
+
+# Python 项目
+python -m py_compile *.py
+python -m pytest
+ruff check .
+
+# Go 项目
+go build ./...
+go test ./...
+golangci-lint run
 ```
 
-#### Step 2.5: 归档
+#### 步骤 2.5: 归档
 
 写入 `.claude-phases/` 目录：
 - `phase-{N}-trace.md`: 完整执行日志
@@ -179,7 +205,7 @@ npm run lint / cargo clippy / ruff check
 - `phase-{N}-review.md`: 多代理评审汇总
 - `phase-{N}-status.json`: 断点状态
 
-#### Step 2.6: Git Commit
+#### 步骤 2.6: Git Commit
 
 ```bash
 # 添加所有变更
@@ -189,23 +215,21 @@ git add -A
 git commit -m "forge(phase-{N}): {Phase名称}
 
 - 变更文件: {files_changed}
-- 评审评分: Security {score}, Performance {score}, Style {score}, Logic {score}
-- 问题修复: {fixed}/{found}
-
-Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
+- 评审评分: 安全 {score}, 性能 {score}, 规范 {score}, 逻辑 {score}
+- 问题修复: {fixed}/{found}"
 
 # 记录 commit hash 到状态文件
 FORGE_COMMIT_HASH=$(git rev-parse HEAD)
 ```
 
-#### Step 2.7: 更新全局状态
+#### 步骤 2.7: 更新全局状态
 
 更新 `.forge-state.json`，标记当前 Phase 为 completed，记录 commit hash
 
 ### 3. 完成阶段
 
 1. 汇总所有 Phase 结果
-2. 生成最终报告
+2. 生成最终报告写入 `.claude-phases/FINAL-REPORT.md`
 3. 输出成功/失败摘要
 
 ## 状态文件格式
@@ -216,10 +240,10 @@ FORGE_COMMIT_HASH=$(git rev-parse HEAD)
 {
   "version": "1.0",
   "task": "任务描述",
-  "started_at": "2025-01-15T10:00:00Z",
+  "started_at": "2026-06-01T10:00:00Z",
   "current_phase": 1,
   "total_phases": 5,
-  "git_branch": "forge/task-1717200000",
+  "git_branch": "main",
   "initial_commit": "abc1234",
   "phases": [
     {
@@ -242,6 +266,7 @@ FORGE_COMMIT_HASH=$(git rev-parse HEAD)
 {
   "phase_id": 1,
   "status": "completed",
+  "commit_hash": "def5678",
   "files_changed": ["file1.ts", "file2.ts"],
   "review_scores": {
     "security": 9.5,
@@ -251,7 +276,6 @@ FORGE_COMMIT_HASH=$(git rev-parse HEAD)
   },
   "issues_found": 8,
   "issues_fixed": 7,
-  "issues_todo": 1,
   "build_passed": true,
   "tests_passed": true
 }
@@ -263,7 +287,7 @@ FORGE_COMMIT_HASH=$(git rev-parse HEAD)
 
 1. **构建失败**: 自动分析错误，修复后重试（最多 3 次）
 2. **测试失败**: 自动修复测试用例或代码
-3. **评审阻塞**: Critical 安全问题必须修复，其他可标记 TODO
+3. **评审阻塞**: 严重安全问题必须修复，其他可标记 TODO
 
 ### 断点续跑
 
@@ -286,7 +310,7 @@ git revert <commit-hash>  # 回撤特定 commit
 git diff <commit1> <commit2>  # 比较两个版本
 ```
 
-### Git Log 格式
+### Git 日志格式
 
 ```
 forge(phase-1): 项目初始化
@@ -301,17 +325,16 @@ forge(phase-3): 修复 + 归档
 ```markdown
 # Phase N: {Phase名称}
 
+## Git Commit
+- Commit: {commit_hash}
+- 查看变更: `git show {commit_hash}`
+- 回撤此 Phase: `git revert {commit_hash}`
+
 ## 变更摘要
-- 新增文件: X
-- 修改文件: Y
-- 删除文件: Z
+- 变更文件: X 个
 
 ## 主要变更
 1. **文件路径**: 变更描述
-
-## 测试覆盖
-- 新增测试: X
-- 覆盖率: XX%
 ```
 
 ### phase-{N}-review.md
@@ -320,18 +343,18 @@ forge(phase-3): 修复 + 归档
 # Phase N 多代理评审报告
 
 ## 总览
-| 代理 | 评分 | 问题数 | 已修复 | TODO |
-|------|------|--------|--------|------|
-| Security | 9.5 | 2 | 2 | 0 |
-| Performance | 8.0 | 3 | 2 | 1 |
-| Style | 9.0 | 1 | 1 | 0 |
-| Logic | 8.5 | 2 | 2 | 0 |
+| 代理 | 评分 | 问题数 |
+|------|------|--------|
+| 安全 | 9.5 | 2 |
+| 性能 | 8.0 | 3 |
+| 规范 | 9.0 | 1 |
+| 逻辑 | 8.5 | 2 |
 
 ## 详细发现
-### Security Agent
-- [FIXED] 问题描述: 文件:行号
+### 安全审计
+- [已修复] 问题描述: 文件:行号
 
-### Performance Agent
-- [FIXED] 问题描述
-- [TODO] 建议描述（非阻塞）
+### 性能审计
+- [已修复] 问题描述
+- [待办] 建议描述（非阻塞）
 ```

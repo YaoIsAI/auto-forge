@@ -6,6 +6,18 @@ set -e
 
 STATE_FILE="${CLAUDE_PROJECT_DIR:-.}/.forge-state.json"
 
+# JSON 转义函数
+json_escape() {
+  local str="$1"
+  # 转义双引号、反斜杠、换行符等
+  str="${str//\\/\\\\}"
+  str="${str//\"/\\\"}"
+  str="${str//$'\n'/\\n}"
+  str="${str//$'\r'/\\r}"
+  str="${str//$'\t'/\\t}"
+  echo "$str"
+}
+
 # 创建新状态
 create_state() {
   local task="$1"
@@ -14,15 +26,20 @@ create_state() {
   local git_branch="${3:-}"
   local initial_commit="${4:-}"
 
+  # 转义特殊字符
+  local escaped_task=$(json_escape "$task")
+  local escaped_branch=$(json_escape "$git_branch")
+  local escaped_commit=$(json_escape "$initial_commit")
+
   cat > "$STATE_FILE" <<EOF
 {
   "version": "1.0",
-  "task": "$task",
-  "started_at": "$timestamp",
+  "task": "${escaped_task}",
+  "started_at": "${timestamp}",
   "current_phase": 0,
-  "total_phases": $total_phases,
-  "git_branch": "$git_branch",
-  "initial_commit": "$initial_commit",
+  "total_phases": ${total_phases},
+  "git_branch": "${escaped_branch}",
+  "initial_commit": "${escaped_commit}",
   "phases": [],
   "retry_count": 0,
   "max_retries": 3
@@ -70,9 +87,15 @@ add_phase() {
     exit 1
   fi
 
+  # 验证 phase_id 是数字
+  if ! [[ "$phase_id" =~ ^[0-9]+$ ]]; then
+    echo "Error: phase_id must be a number"
+    exit 1
+  fi
+
   jq --arg id "$phase_id" --arg name "$phase_name" --arg ts "$timestamp" \
     '.phases += [{"id": ($id | tonumber), "name": $name, "status": "pending", "started_at": $ts}]' \
-    "$STATE_FILE" > "${STATE_FILE}.tmp" && mv "${STATE_FILE}.tmp" "$STATE_FILE"
+    "$STATE_FILE" > "${STATE_FILE}.tmp" && mv -f "${STATE_FILE}.tmp" "$STATE_FILE"
 }
 
 # 更新 Phase 状态
@@ -89,11 +112,11 @@ update_phase_status() {
   if [ "$status" = "completed" ]; then
     jq --arg id "$phase_id" --arg status "$status" --arg ts "$timestamp" \
       '(.phases[] | select(.id == ($id | tonumber))) |= (.status = $status | .completed_at = $ts)' \
-      "$STATE_FILE" > "${STATE_FILE}.tmp" && mv "${STATE_FILE}.tmp" "$STATE_FILE"
+      "$STATE_FILE" > "${STATE_FILE}.tmp" && mv -f "${STATE_FILE}.tmp" "$STATE_FILE"
   else
     jq --arg id "$phase_id" --arg status "$status" --arg ts "$timestamp" \
       '(.phases[] | select(.id == ($id | tonumber))) |= (.status = $status | .started_at = $ts)' \
-      "$STATE_FILE" > "${STATE_FILE}.tmp" && mv "${STATE_FILE}.tmp" "$STATE_FILE"
+      "$STATE_FILE" > "${STATE_FILE}.tmp" && mv -f "${STATE_FILE}.tmp" "$STATE_FILE"
   fi
 }
 
@@ -109,7 +132,7 @@ update_phase_commit() {
 
   jq --arg id "$phase_id" --arg hash "$commit_hash" \
     '(.phases[] | select(.id == ($id | tonumber))) |= (.commit_hash = $hash)' \
-    "$STATE_FILE" > "${STATE_FILE}.tmp" && mv "${STATE_FILE}.tmp" "$STATE_FILE"
+    "$STATE_FILE" > "${STATE_FILE}.tmp" && mv -f "${STATE_FILE}.tmp" "$STATE_FILE"
 }
 
 # 获取 Phase commit hash
@@ -121,7 +144,8 @@ get_phase_commit() {
     return
   fi
 
-  jq -r ".phases[] | select(.id == $phase_id) | .commit_hash // \"\"" "$STATE_FILE" 2>/dev/null
+  # 使用 --arg 防止注入
+  jq -r --arg id "$phase_id" '.phases[] | select(.id == ($id | tonumber)) | .commit_hash // ""' "$STATE_FILE" 2>/dev/null
 }
 
 # 更新当前 Phase
@@ -134,7 +158,7 @@ update_current_phase() {
   fi
 
   jq --arg phase "$phase" '.current_phase = ($phase | tonumber)' \
-    "$STATE_FILE" > "${STATE_FILE}.tmp" && mv "${STATE_FILE}.tmp" "$STATE_FILE"
+    "$STATE_FILE" > "${STATE_FILE}.tmp" && mv -f "${STATE_FILE}.tmp" "$STATE_FILE"
 }
 
 # 增加重试计数
@@ -144,7 +168,7 @@ increment_retry() {
     exit 1
   fi
 
-  jq '.retry_count += 1' "$STATE_FILE" > "${STATE_FILE}.tmp" && mv "${STATE_FILE}.tmp" "$STATE_FILE"
+  jq '.retry_count += 1' "$STATE_FILE" > "${STATE_FILE}.tmp" && mv -f "${STATE_FILE}.tmp" "$STATE_FILE"
 }
 
 # 重置重试计数
@@ -154,7 +178,7 @@ reset_retry() {
     exit 1
   fi
 
-  jq '.retry_count = 0' "$STATE_FILE" > "${STATE_FILE}.tmp" && mv "${STATE_FILE}.tmp" "$STATE_FILE"
+  jq '.retry_count = 0' "$STATE_FILE" > "${STATE_FILE}.tmp" && mv -f "${STATE_FILE}.tmp" "$STATE_FILE"
 }
 
 # 检查是否还有重试次数
@@ -184,7 +208,10 @@ is_all_completed() {
   local current=$(jq -r '.current_phase // 0' "$STATE_FILE")
   local total=$(jq -r '.total_phases // 0' "$STATE_FILE")
 
-  if [ "$current" -ge "$total" ]; then
+  # 检查是否所有 phase 状态都是 completed
+  local pending=$(jq '[.phases[] | select(.status != "completed")] | length' "$STATE_FILE" 2>/dev/null || echo "0")
+
+  if [ "$pending" -eq 0 ] && [ "$total" -gt 0 ]; then
     echo "true"
   else
     echo "false"

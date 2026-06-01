@@ -5,8 +5,6 @@
 set -e
 
 ARCHIVE_DIR="${CLAUDE_PROJECT_DIR:-.}/.claude-phases"
-PHASE_ID="$1"
-PHASE_NAME="$2"
 STATUS_FILE="${CLAUDE_PROJECT_DIR:-.}/.forge-state.json"
 
 # 确保归档目录存在
@@ -18,6 +16,12 @@ generate_changelog() {
   local phase_name="$2"
   local files_changed="$3"
   local commit_hash="$4"
+
+  # 计算变更文件数
+  local file_count=0
+  if [ -n "$files_changed" ]; then
+    file_count=$(echo "$files_changed" | grep -c . || echo "0")
+  fi
 
   # 获取 git diff 统计
   local git_stats=""
@@ -34,7 +38,7 @@ generate_changelog() {
 - 回撤此 Phase: \`git revert ${commit_hash:-HEAD}\`
 
 ## 变更摘要
-$(echo "$files_changed" | wc -l | xargs -I {} echo "- 变更文件: {} 个")
+- 变更文件: ${file_count} 个
 
 ## 主要变更
 $(echo "$files_changed" | sed 's/^/- /')
@@ -69,10 +73,10 @@ generate_review() {
 ## 总览
 | 代理 | 评分 | 问题数 |
 |------|------|--------|
-| Security | ${security_score:-N/A} | ${security_issues:-0} |
-| Performance | ${performance_score:-N/A} | ${performance_issues:-0} |
-| Style | ${style_score:-N/A} | ${style_issues:-0} |
-| Logic | ${logic_score:-N/A} | ${logic_issues:-0} |
+| 安全 | ${security_score:-N/A} | ${security_issues:-0} |
+| 性能 | ${performance_score:-N/A} | ${performance_issues:-0} |
+| 规范 | ${style_score:-N/A} | ${style_issues:-0} |
+| 逻辑 | ${logic_score:-N/A} | ${logic_issues:-0} |
 
 ## 生成时间
 $(date -u +"%Y-%m-%dT%H:%M:%SZ")
@@ -86,16 +90,18 @@ generate_trace() {
   local phase_id="$1"
   local phase_name="$2"
   local status="$3"
-  local duration="$4"
-  local commit_hash="$5"
+  local start_time="$4"
+  local end_time="$5"
+  local duration="$6"
+  local commit_hash="$7"
 
   cat > "$ARCHIVE_DIR/phase-${phase_id}-trace.md" <<EOF
 # Phase ${phase_id}: ${phase_name} - 执行日志
 
 ## 状态
 - 状态: ${status}
-- 开始时间: ${5:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
-- 结束时间: ${6:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
+- 开始时间: ${start_time:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
+- 结束时间: ${end_time:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
 - 耗时: ${duration:-N/A}
 
 ## Git 信息
@@ -134,7 +140,16 @@ generate_status() {
   local commit_hash="${12}"
 
   # 将文件列表转换为 JSON 数组
-  local files_json=$(echo "$files_changed" | jq -R -s 'split("\n") | map(select(length > 0))')
+  local files_json="[]"
+  if [ -n "$files_changed" ]; then
+    files_json=$(echo "$files_changed" | jq -R -s 'split("\n") | map(select(length > 0))')
+  fi
+
+  # 确保布尔值正确
+  local build_bool="true"
+  local tests_bool="true"
+  [ "$build_passed" = "false" ] && build_bool="false"
+  [ "$tests_passed" = "false" ] && tests_bool="false"
 
   cat > "$ARCHIVE_DIR/phase-${phase_id}-status.json" <<EOF
 {
@@ -150,8 +165,8 @@ generate_status() {
   },
   "issues_found": ${issues_found:-0},
   "issues_fixed": ${issues_fixed:-0},
-  "build_passed": ${build_passed:-true},
-  "tests_passed": ${tests_passed:-true},
+  "build_passed": ${build_bool},
+  "tests_passed": ${tests_bool},
   "generated_at": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 }
 EOF
@@ -172,6 +187,18 @@ generate_final_report() {
     current_branch=$(git branch --show-current 2>/dev/null || echo "N/A")
   fi
 
+  # 生成 Phase 结果列表
+  local phase_results=""
+  for i in $(seq 1 $total_phases); do
+    if [ -f "$ARCHIVE_DIR/phase-${i}-status.json" ]; then
+      local status=$(jq -r '.status' "$ARCHIVE_DIR/phase-${i}-status.json")
+      local security=$(jq -r '.review_scores.security' "$ARCHIVE_DIR/phase-${i}-status.json")
+      local commit=$(jq -r '.commit_hash // "N/A"' "$ARCHIVE_DIR/phase-${i}-status.json")
+      phase_results="${phase_results}- Phase ${i}: ${status} (安全: ${security}) [commit: ${commit:0:7}]
+"
+    fi
+  done
+
   cat > "$ARCHIVE_DIR/FINAL-REPORT.md" <<EOF
 # Forge 最终报告
 
@@ -184,15 +211,7 @@ ${task}
 - Git 分支: ${current_branch}
 
 ## Phase 结果
-$(for i in $(seq 1 $total_phases); do
-  if [ -f "$ARCHIVE_DIR/phase-${i}-status.json" ]; then
-    local status=$(jq -r '.status' "$ARCHIVE_DIR/phase-${i}-status.json")
-    local security=$(jq -r '.review_scores.security' "$ARCHIVE_DIR/phase-${i}-status.json")
-    local commit=$(jq -r '.commit_hash // "N/A"' "$ARCHIVE_DIR/phase-${i}-status.json")
-    echo "- Phase ${i}: ${status} (Security: ${security}) [commit: ${commit:0:7}]"
-  fi
-done)
-
+${phase_results}
 ## Git 历史
 \`\`\`
 ${git_log}
@@ -218,24 +237,24 @@ EOF
 }
 
 # 主入口
-case "$2" in
+case "$1" in
   changelog)
-    generate_changelog "$3" "$4" "$5"
+    generate_changelog "$2" "$3" "$4" "$5"
     ;;
   review)
-    generate_review "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}"
+    generate_review "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}"
     ;;
   trace)
-    generate_trace "$3" "$4" "$5" "$6" "$7" "$8"
+    generate_trace "$2" "$3" "$4" "$5" "$6" "$7" "$8"
     ;;
   status)
-    generate_status "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}"
+    generate_status "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}"
     ;;
   final)
-    generate_final_report "$3" "$4"
+    generate_final_report "$2" "$3"
     ;;
   *)
-    echo "Usage: $0 archive {changelog|review|trace|status|final} [args...]"
+    echo "Usage: $0 {changelog|review|trace|status|final} [args...]"
     exit 1
     ;;
 esac

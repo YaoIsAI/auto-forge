@@ -7,6 +7,21 @@ set -e
 STATE_FILE="${CLAUDE_PROJECT_DIR:-.}/.forge-state.json"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# 检测项目类型
+detect_project_type() {
+  if [ -f "package.json" ]; then
+    echo "node"
+  elif [ -f "Cargo.toml" ]; then
+    echo "rust"
+  elif [ -f "pyproject.toml" ] || [ -f "requirements.txt" ]; then
+    echo "python"
+  elif [ -f "go.mod" ]; then
+    echo "go"
+  else
+    echo "unknown"
+  fi
+}
+
 # 检查并执行重试
 handle_retry() {
   local phase_id="$1"
@@ -51,29 +66,51 @@ handle_retry() {
 # 重试构建
 retry_build() {
   local phase_id="$1"
+  local project_type=$(detect_project_type)
 
-  # 检测项目类型并执行构建
-  if [ -f "package.json" ]; then
-    npm run build 2>&1 || true
-  elif [ -f "Cargo.toml" ]; then
-    cargo build 2>&1 || true
-  elif [ -f "requirements.txt" ]; then
-    python -m py_compile *.py 2>&1 || true
-  fi
+  case "$project_type" in
+    node)
+      npm run build 2>&1
+      ;;
+    rust)
+      cargo build 2>&1
+      ;;
+    python)
+      python -m py_compile *.py 2>&1 || python -m build 2>&1
+      ;;
+    go)
+      go build ./... 2>&1
+      ;;
+    *)
+      echo "Unknown project type, skipping build"
+      return 0
+      ;;
+  esac
 }
 
 # 重试测试
 retry_test() {
   local phase_id="$1"
+  local project_type=$(detect_project_type)
 
-  # 检测项目类型并执行测试
-  if [ -f "package.json" ]; then
-    npm test 2>&1 || true
-  elif [ -f "Cargo.toml" ]; then
-    cargo test 2>&1 || true
-  elif [ -f "requirements.txt" ]; then
-    python -m pytest 2>&1 || true
-  fi
+  case "$project_type" in
+    node)
+      npm test 2>&1
+      ;;
+    rust)
+      cargo test 2>&1
+      ;;
+    python)
+      python -m pytest 2>&1
+      ;;
+    go)
+      go test ./... 2>&1
+      ;;
+    *)
+      echo "Unknown project type, skipping tests"
+      return 0
+      ;;
+  esac
 }
 
 # 重试整个 Phase
@@ -82,8 +119,18 @@ retry_phase() {
 
   # 回滚到 Phase 开始前的状态
   if git rev-parse --git-dir > /dev/null 2>&1; then
-    echo "Rolling back to pre-phase state..."
-    git stash push -m "forge-phase-${phase_id}-retry" 2>/dev/null || true
+    # 获取该 Phase 的 commit hash
+    local commit_hash=$("$SCRIPT_DIR/state-manager.sh" get-commit "$phase_id")
+
+    if [ -n "$commit_hash" ] && [ "$commit_hash" != "null" ]; then
+      echo "Reverting commit: $commit_hash"
+      git revert --no-edit "$commit_hash" 2>/dev/null || {
+        echo "Warning: git revert failed, trying git reset"
+        git reset --hard HEAD~1 2>/dev/null || true
+      }
+    else
+      echo "No commit hash found for Phase $phase_id"
+    fi
   fi
 
   # 重置 Phase 状态为 pending
@@ -94,9 +141,9 @@ retry_phase() {
 analyze_error() {
   local error_output="$1"
 
-  if echo "$error_output" | grep -qi "build\|compile\|syntax"; then
+  if echo "$error_output" | grep -qi "build\|compile\|syntax\|module not found"; then
     echo "build"
-  elif echo "$error_output" | grep -qi "test\|assert\|expect"; then
+  elif echo "$error_output" | grep -qi "test\|assert\|expect\|fail"; then
     echo "test"
   else
     echo "unknown"
@@ -111,8 +158,11 @@ case "$1" in
   analyze)
     analyze_error "$2"
     ;;
+  detect)
+    detect_project_type
+    ;;
   *)
-    echo "Usage: $0 {handle|analyze} [args...]"
+    echo "Usage: $0 {handle|analyze|detect} [args...]"
     exit 1
     ;;
 esac

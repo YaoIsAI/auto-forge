@@ -2,8 +2,6 @@
 # Forge Orchestrator
 # 编排 Phase 执行流程
 
-set -e
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STATE_FILE="${CLAUDE_PROJECT_DIR:-.}/.forge-state.json"
 
@@ -39,7 +37,13 @@ get_next_phase() {
 
   local total=$("$SCRIPT_DIR/state-manager.sh" total-phases)
 
-  for i in $(seq 1 $total); do
+  # 检查 total 是否有效
+  if [ -z "$total" ] || [ "$total" -eq 0 ] 2>/dev/null; then
+    echo "0"
+    return
+  fi
+
+  for i in $(seq 1 "$total"); do
     local status=$(jq -r ".phases[] | select(.id == $i) | .status" "$STATE_FILE" 2>/dev/null)
     if [ "$status" = "pending" ] || [ -z "$status" ]; then
       echo "$i"
@@ -75,7 +79,7 @@ detect_project_type() {
     echo "node"
   elif [ -f "Cargo.toml" ]; then
     echo "rust"
-  elif [ -f "requirements.txt" ] || [ -f "pyproject.toml" ]; then
+  elif [ -f "pyproject.toml" ] || [ -f "requirements.txt" ]; then
     echo "python"
   elif [ -f "go.mod" ]; then
     echo "go"
@@ -87,49 +91,55 @@ detect_project_type() {
 # 执行构建命令
 run_build() {
   local project_type=$(detect_project_type)
+  local exit_code=0
 
   case "$project_type" in
     node)
-      npm run build 2>&1
+      npm run build 2>&1 || exit_code=$?
       ;;
     rust)
-      cargo build 2>&1
+      cargo build 2>&1 || exit_code=$?
       ;;
     python)
-      python -m py_compile *.py 2>&1
+      python -m py_compile *.py 2>&1 || python -m build 2>&1 || exit_code=$?
       ;;
     go)
-      go build ./... 2>&1
+      go build ./... 2>&1 || exit_code=$?
       ;;
     *)
       echo "Unknown project type, skipping build"
       return 0
       ;;
   esac
+
+  return $exit_code
 }
 
 # 执行测试命令
 run_test() {
   local project_type=$(detect_project_type)
+  local exit_code=0
 
   case "$project_type" in
     node)
-      npm test 2>&1
+      npm test 2>&1 || exit_code=$?
       ;;
     rust)
-      cargo test 2>&1
+      cargo test 2>&1 || exit_code=$?
       ;;
     python)
-      python -m pytest 2>&1
+      python -m pytest 2>&1 || exit_code=$?
       ;;
     go)
-      go test ./... 2>&1
+      go test ./... 2>&1 || exit_code=$?
       ;;
     *)
       echo "Unknown project type, skipping tests"
       return 0
       ;;
   esac
+
+  return $exit_code
 }
 
 # 执行 lint 命令
@@ -165,7 +175,13 @@ generate_final() {
   fi
 
   local total=$("$SCRIPT_DIR/state-manager.sh" total-phases)
-  "$SCRIPT_DIR/archive-gen.sh" archive final "$total" "$task"
+
+  if [ -z "$total" ] || [ "$total" -eq 0 ] 2>/dev/null; then
+    echo "Error: No phases found"
+    return 1
+  fi
+
+  "$SCRIPT_DIR/archive-gen.sh" final "$total" "$task"
 }
 
 # Git 初始化
@@ -186,19 +202,23 @@ git_init() {
     # 已有 git，保存当前状态
     echo "Git repository detected"
 
-    # 记录当前 HEAD
-    local current_head=$(git rev-parse HEAD)
-    echo "Current HEAD: $current_head"
+    # 检查是否有 commit
+    if git rev-parse HEAD > /dev/null 2>&1; then
+      local current_head=$(git rev-parse HEAD)
+      echo "Current HEAD: $current_head"
+    else
+      echo "Empty repository (no commits yet)"
+    fi
 
     # 检查是否有未提交的更改
     if ! git diff --quiet 2>/dev/null || ! git diff --cached --quiet 2>/dev/null; then
       echo "Saving current changes..."
-      git stash push -m "forge: save current work before task"
+      git stash push -m "forge: save current work before task" 2>/dev/null || true
     fi
   fi
 
   # 返回当前分支名
-  git branch --show-current
+  git branch --show-current 2>/dev/null || echo "HEAD"
 }
 
 # Git commit
@@ -227,7 +247,7 @@ git_revert() {
     exit 1
   fi
 
-  local commit_hash=$(jq -r ".phases[] | select(.id == $phase_id) | .commit_hash" "$STATE_FILE" 2>/dev/null)
+  local commit_hash=$(jq -r --arg id "$phase_id" '.phases[] | select(.id == ($id | tonumber)) | .commit_hash // ""' "$STATE_FILE" 2>/dev/null)
 
   if [ -z "$commit_hash" ] || [ "$commit_hash" = "null" ]; then
     echo "Error: No commit hash found for Phase $phase_id"
@@ -260,13 +280,15 @@ git_log() {
 
   if [ -f "$STATE_FILE" ]; then
     echo "=== Phase Details ==="
-    local total=$(jq -r '.total_phases' "$STATE_FILE")
-    for i in $(seq 1 $total); do
-      local status=$(jq -r ".phases[] | select(.id == $i) | .status" "$STATE_FILE" 2>/dev/null)
-      local commit=$(jq -r ".phases[] | select(.id == $i) | .commit_hash // \"N/A\"" "$STATE_FILE" 2>/dev/null)
-      local name=$(jq -r ".phases[] | select(.id == $i) | .name" "$STATE_FILE" 2>/dev/null)
-      echo "Phase $i: $name [$status] commit: ${commit:0:7}"
-    done
+    local total=$(jq -r '.total_phases' "$STATE_FILE" 2>/dev/null)
+    if [ -n "$total" ] && [ "$total" -gt 0 ] 2>/dev/null; then
+      for i in $(seq 1 "$total"); do
+        local status=$(jq -r ".phases[] | select(.id == $i) | .status" "$STATE_FILE" 2>/dev/null)
+        local commit=$(jq -r ".phases[] | select(.id == $i) | .commit_hash // \"N/A\"" "$STATE_FILE" 2>/dev/null)
+        local name=$(jq -r ".phases[] | select(.id == $i) | .name" "$STATE_FILE" 2>/dev/null)
+        echo "Phase $i: $name [$status] commit: ${commit:0:7}"
+      done
+    fi
     echo ""
   fi
 
