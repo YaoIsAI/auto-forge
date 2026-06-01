@@ -168,6 +168,69 @@ generate_final() {
   "$SCRIPT_DIR/archive-gen.sh" archive final "$total" "$task"
 }
 
+# Git 初始化
+git_init() {
+  if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    git init
+    git add -A
+    git commit -m "forge: initial commit before task"
+    echo "Git repository initialized"
+  fi
+
+  # 创建 forge 分支
+  local branch_name="forge/task-$(date +%s)"
+  git checkout -b "$branch_name" 2>/dev/null || true
+  echo "Created branch: $branch_name"
+}
+
+# Git commit
+git_commit() {
+  local phase_id="$1"
+  local phase_name="$2"
+  local commit_msg="$3"
+
+  git add -A
+  git commit -m "forge(phase-${phase_id}): ${phase_name}
+
+${commit_msg}
+
+Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
+
+  # 返回 commit hash
+  git rev-parse HEAD
+}
+
+# Git revert to phase
+git_revert() {
+  local phase_id="$1"
+
+  if [ ! -f "$STATE_FILE" ]; then
+    echo "Error: No state file found"
+    exit 1
+  fi
+
+  local commit_hash=$(jq -r ".phases[] | select(.id == $phase_id) | .commit_hash" "$STATE_FILE" 2>/dev/null)
+
+  if [ -z "$commit_hash" ] || [ "$commit_hash" = "null" ]; then
+    echo "Error: No commit hash found for Phase $phase_id"
+    exit 1
+  fi
+
+  echo "Reverting to Phase $phase_id (commit: $commit_hash)"
+  git revert --no-edit "$commit_hash"
+  echo "Reverted successfully"
+}
+
+# Git log
+git_log() {
+  echo "=== Forge Git History ==="
+  echo ""
+  git log --oneline --grep="forge(phase" 2>/dev/null || echo "No forge commits found"
+  echo ""
+  echo "=== All Commits ==="
+  git log --oneline -20
+}
+
 # 主入口
 case "$1" in
   init)
@@ -197,8 +260,20 @@ case "$1" in
   final)
     generate_final
     ;;
+  git-init)
+    git_init
+    ;;
+  git-commit)
+    git_commit "$2" "$3" "$4"
+    ;;
+  git-revert)
+    git_revert "$2"
+    ;;
+  git-log)
+    git_log
+    ;;
   *)
-    echo "Usage: $0 {init|resume|next|can-execute|detect|build|test|lint|final} [args...]"
+    echo "Usage: $0 {init|resume|next|can-execute|detect|build|test|lint|final|git-init|git-commit|git-revert|git-log} [args...]"
     exit 1
     ;;
 esac

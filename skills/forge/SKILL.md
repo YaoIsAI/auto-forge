@@ -4,7 +4,7 @@ description: >
   全自动多 Phase 工作流引擎。自动拆分任务、编码、多代理并行评审、修复、归档。
   使用方式: /forge <任务描述>
   触发词: forge, 全自动, 无人值守, parallel agents, 多代理评审
-argument-hint: <任务描述或需求文件路径> 或 --resume 从断点继续
+argument-hint: <任务描述或需求文件路径> 或 --resume 从断点继续 或 --revert <phase-id> 回撤 或 --log 查看历史
 allowed-tools:
   - Read
   - Write
@@ -22,7 +22,7 @@ disable-model-invocation: true
 
 # Forge - 全自动工作流引擎
 
-执行全自动多 Phase 工作流，包含并行 AI 评审。
+执行全自动多 Phase 工作流，包含并行 AI 评审，完整 Git 版本控制。
 
 ## 使用方式
 
@@ -30,6 +30,8 @@ disable-model-invocation: true
 /forge 实现一个用户认证模块，支持 JWT + OAuth2
 /forge ./docs/requirements.md
 /forge --resume  # 从断点继续
+/forge --revert 2  # 回撤到 Phase 2 完成后的状态
+/forge --log  # 查看所有 Phase 的 git 历史
 ```
 
 ## 工作流程
@@ -39,8 +41,25 @@ disable-model-invocation: true
 1. 解析参数 `$ARGUMENTS`
 2. 如果参数是文件路径，读取文件内容作为任务描述
 3. 如果参数包含 `--resume`，读取 `.forge-state.json` 恢复状态
-4. 否则创建新的 `.forge-state.json`
-5. 根据任务复杂度拆分为多个 Phase（通常 3-7 个）
+4. 如果参数包含 `--revert <phase-id>`，执行 git revert 回撤
+5. 如果参数包含 `--log`，显示 git 历史
+6. 否则创建新的 `.forge-state.json`
+7. 检查/初始化 git 仓库
+8. 根据任务复杂度拆分为多个 Phase（通常 3-7 个）
+
+### 1.1 Git 初始化
+
+```bash
+# 检查是否已有 git 仓库
+if ! git rev-parse --git-dir > /dev/null 2>&1; then
+  git init
+  git add -A
+  git commit -m "forge: initial commit before task"
+fi
+
+# 创建 forge 分支（可选，便于隔离）
+git checkout -b forge/task-{timestamp}
+```
 
 ### 2. Phase 执行循环
 
@@ -146,9 +165,28 @@ npm run lint / cargo clippy / ruff check
 - `phase-{N}-review.md`: 多代理评审汇总
 - `phase-{N}-status.json`: 断点状态
 
-#### Step 2.6: 更新全局状态
+#### Step 2.6: Git Commit
 
-更新 `.forge-state.json`，标记当前 Phase 为 completed
+```bash
+# 添加所有变更
+git add -A
+
+# 创建 commit，包含 Phase 信息
+git commit -m "forge(phase-{N}): {Phase名称}
+
+- 变更文件: {files_changed}
+- 评审评分: Security {score}, Performance {score}, Style {score}, Logic {score}
+- 问题修复: {fixed}/{found}
+
+Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
+
+# 记录 commit hash 到状态文件
+FORGE_COMMIT_HASH=$(git rev-parse HEAD)
+```
+
+#### Step 2.7: 更新全局状态
+
+更新 `.forge-state.json`，标记当前 Phase 为 completed，记录 commit hash
 
 ### 3. 完成阶段
 
@@ -167,13 +205,16 @@ npm run lint / cargo clippy / ruff check
   "started_at": "2025-01-15T10:00:00Z",
   "current_phase": 1,
   "total_phases": 5,
+  "git_branch": "forge/task-1717200000",
+  "initial_commit": "abc1234",
   "phases": [
     {
       "id": 1,
       "name": "Phase名称",
       "status": "completed|in_progress|pending|failed",
       "started_at": "...",
-      "completed_at": "..."
+      "completed_at": "...",
+      "commit_hash": "def5678"
     }
   ],
   "retry_count": 0,
@@ -219,8 +260,24 @@ npm run lint / cargo clippy / ruff check
 ### 回滚机制
 
 ```bash
-# 回滚到 Phase 开始前的状态
-git stash push -m "forge-phase-{N}-rollback"
+# 方式 1: 回撤到某个 Phase 完成后的状态
+/forge --revert 2  # 回撤到 Phase 2 完成后
+
+# 方式 2: 查看 git 历史
+/forge --log
+
+# 方式 3: 手动 git 操作
+git log --oneline  # 查看所有 commit
+git revert <commit-hash>  # 回撤特定 commit
+git diff <commit1> <commit2>  # 比较两个版本
+```
+
+### Git Log 格式
+
+```
+forge(phase-1): 项目初始化
+forge(phase-2): 实现 API + 评审
+forge(phase-3): 修复 + 归档
 ```
 
 ## 归档文件模板

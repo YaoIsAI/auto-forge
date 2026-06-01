@@ -11,6 +11,8 @@ create_state() {
   local task="$1"
   local total_phases="$2"
   local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+  local git_branch="${3:-}"
+  local initial_commit="${4:-}"
 
   cat > "$STATE_FILE" <<EOF
 {
@@ -19,6 +21,8 @@ create_state() {
   "started_at": "$timestamp",
   "current_phase": 0,
   "total_phases": $total_phases,
+  "git_branch": "$git_branch",
+  "initial_commit": "$initial_commit",
   "phases": [],
   "retry_count": 0,
   "max_retries": 3
@@ -91,6 +95,33 @@ update_phase_status() {
       '(.phases[] | select(.id == ($id | tonumber))) |= (.status = $status | .started_at = $ts)' \
       "$STATE_FILE" > "${STATE_FILE}.tmp" && mv "${STATE_FILE}.tmp" "$STATE_FILE"
   fi
+}
+
+# 更新 Phase commit hash
+update_phase_commit() {
+  local phase_id="$1"
+  local commit_hash="$2"
+
+  if [ ! -f "$STATE_FILE" ]; then
+    echo "Error: State file not found"
+    exit 1
+  fi
+
+  jq --arg id "$phase_id" --arg hash "$commit_hash" \
+    '(.phases[] | select(.id == ($id | tonumber))) |= (.commit_hash = $hash)' \
+    "$STATE_FILE" > "${STATE_FILE}.tmp" && mv "${STATE_FILE}.tmp" "$STATE_FILE"
+}
+
+# 获取 Phase commit hash
+get_phase_commit() {
+  local phase_id="$1"
+
+  if [ ! -f "$STATE_FILE" ]; then
+    echo ""
+    return
+  fi
+
+  jq -r ".phases[] | select(.id == $phase_id) | .commit_hash // \"\"" "$STATE_FILE" 2>/dev/null
 }
 
 # 更新当前 Phase
@@ -171,7 +202,7 @@ cleanup_state() {
 # 主入口
 case "$1" in
   create)
-    create_state "$2" "$3"
+    create_state "$2" "$3" "$4" "$5"
     ;;
   read)
     read_state
@@ -187,6 +218,12 @@ case "$1" in
     ;;
   update-phase)
     update_phase_status "$2" "$3"
+    ;;
+  update-commit)
+    update_phase_commit "$2" "$3"
+    ;;
+  get-commit)
+    get_phase_commit "$2"
     ;;
   set-current)
     update_current_phase "$2"
@@ -207,7 +244,7 @@ case "$1" in
     cleanup_state
     ;;
   *)
-    echo "Usage: $0 {create|read|current-phase|total-phases|add-phase|update-phase|set-current|retry|reset-retry|can-retry|is-completed|cleanup}"
+    echo "Usage: $0 {create|read|current-phase|total-phases|add-phase|update-phase|update-commit|get-commit|set-current|retry|reset-retry|can-retry|is-completed|cleanup}"
     exit 1
     ;;
 esac
