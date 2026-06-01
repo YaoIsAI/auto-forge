@@ -1,8 +1,51 @@
-# Forge - 全自动工作流引擎
+# Forge - Multi-Phase Workflow Engine
+
+[中文](#中文说明) | [English](#english)
+
+---
+
+## English
+
+A multi-phase workflow engine for Claude Code with automatic task decomposition, parallel multi-agent review, and complete Git version control.
+
+### Features
+
+- **Multi-Phase Execution**: Automatically decompose tasks into phases
+- **Parallel Multi-Agent Review**: 4 AI agents review simultaneously (security/performance/style/logic)
+- **Git Version Control**: Auto-commit each phase with full history
+- **Breakpoint Resume**: Resume from failed phases
+- **Auto Archiving**: Generate documentation for each phase
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/YaoIsAI/auto-forge.git
+
+# Create symbolic link
+# Windows (Git Bash)
+ln -s /path/to/auto-forge/.claude/skills/forge ~/.claude/skills/forge
+
+# Linux/macOS
+ln -s /path/to/auto-forge/.claude/skills/forge ~/.claude/skills/forge
+```
+
+### Usage
+
+```
+/forge Implement a user authentication module with JWT + OAuth2
+/forge --resume              # Resume from breakpoint
+/forge --revert 2            # Revert to Phase 2
+/forge --log                 # View git history
+```
+
+---
+
+## 中文说明
 
 Claude Code 的全自动多 Phase 工作流插件，支持并行 AI 评审和完整 Git 版本控制。
 
-## 功能特性
+### 功能特性
 
 - **多 Phase 串行执行**: 自动拆分任务，按阶段执行
 - **多代理并行评审**: 4 个 AI 代理同时审查（安全/性能/规范/逻辑）
