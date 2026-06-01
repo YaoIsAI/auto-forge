@@ -170,17 +170,35 @@ generate_final() {
 
 # Git 初始化
 git_init() {
-  if ! git rev-parse --git-dir > /dev/null 2>&1; then
+  local has_git=false
+
+  if git rev-parse --git-dir > /dev/null 2>&1; then
+    has_git=true
+  fi
+
+  if [ "$has_git" = false ]; then
+    # 没有 git，初始化
     git init
     git add -A
     git commit -m "forge: initial commit before task"
     echo "Git repository initialized"
+  else
+    # 已有 git，保存当前状态
+    echo "Git repository detected"
+
+    # 记录当前 HEAD
+    local current_head=$(git rev-parse HEAD)
+    echo "Current HEAD: $current_head"
+
+    # 检查是否有未提交的更改
+    if ! git diff --quiet 2>/dev/null || ! git diff --cached --quiet 2>/dev/null; then
+      echo "Saving current changes..."
+      git stash push -m "forge: save current work before task"
+    fi
   fi
 
-  # 创建 forge 分支
-  local branch_name="forge/task-$(date +%s)"
-  git checkout -b "$branch_name" 2>/dev/null || true
-  echo "Created branch: $branch_name"
+  # 返回当前分支名
+  git branch --show-current
 }
 
 # Git commit
@@ -216,19 +234,44 @@ git_revert() {
     exit 1
   fi
 
-  echo "Reverting to Phase $phase_id (commit: $commit_hash)"
+  echo "=== Revert Preview ==="
+  echo "Phase $phase_id commit: $commit_hash"
+  echo ""
+  echo "Changes to be reverted:"
+  git show --stat "$commit_hash" | head -20
+  echo ""
+
+  # 执行 revert
+  echo "Reverting..."
   git revert --no-edit "$commit_hash"
-  echo "Reverted successfully"
+
+  echo ""
+  echo "=== Revert Complete ==="
+  echo "Phase $phase_id has been reverted"
+  echo "Current HEAD: $(git rev-parse HEAD)"
 }
 
 # Git log
 git_log() {
-  echo "=== Forge Git History ==="
+  echo "=== Forge Phase History ==="
   echo ""
   git log --oneline --grep="forge(phase" 2>/dev/null || echo "No forge commits found"
   echo ""
-  echo "=== All Commits ==="
-  git log --oneline -20
+
+  if [ -f "$STATE_FILE" ]; then
+    echo "=== Phase Details ==="
+    local total=$(jq -r '.total_phases' "$STATE_FILE")
+    for i in $(seq 1 $total); do
+      local status=$(jq -r ".phases[] | select(.id == $i) | .status" "$STATE_FILE" 2>/dev/null)
+      local commit=$(jq -r ".phases[] | select(.id == $i) | .commit_hash // \"N/A\"" "$STATE_FILE" 2>/dev/null)
+      local name=$(jq -r ".phases[] | select(.id == $i) | .name" "$STATE_FILE" 2>/dev/null)
+      echo "Phase $i: $name [$status] commit: ${commit:0:7}"
+    done
+    echo ""
+  fi
+
+  echo "=== Recent Commits (last 10) ==="
+  git log --oneline -10
 }
 
 # 主入口

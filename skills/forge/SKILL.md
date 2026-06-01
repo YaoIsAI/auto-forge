@@ -47,19 +47,33 @@ disable-model-invocation: true
 7. 检查/初始化 git 仓库
 8. 根据任务复杂度拆分为多个 Phase（通常 3-7 个）
 
-### 1.1 Git 初始化
+### 1.1 Git 处理策略
 
+**场景 1: 项目没有 git**
 ```bash
-# 检查是否已有 git 仓库
-if ! git rev-parse --git-dir > /dev/null 2>&1; then
-  git init
-  git add -A
-  git commit -m "forge: initial commit before task"
-fi
-
-# 创建 forge 分支（可选，便于隔离）
-git checkout -b forge/task-{timestamp}
+# 初始化 git
+git init
+git add -A
+git commit -m "forge: initial commit before task"
 ```
+
+**场景 2: 项目已有 git（推荐）**
+```bash
+# 1. 记录当前 HEAD（用于回撤）
+FORGE_INITIAL_COMMIT=$(git rev-parse HEAD)
+
+# 2. 可选：保存当前未提交的更改
+git stash push -m "forge: save current work"
+
+# 3. 在当前分支上直接 commit（不创建新分支）
+# forge 的 commit 使用特殊前缀：forge(phase-N):
+```
+
+**关键原则：**
+- **不创建新分支** - 避免干扰用户现有工作流
+- **使用 commit 前缀** - `forge(phase-N):` 标识 forge 的 commit
+- **支持 stash** - 保存用户未提交的更改
+- **独立回撤** - 只回撤 forge 的 commit，不影响用户代码
 
 ### 2. Phase 执行循环
 
