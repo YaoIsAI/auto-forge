@@ -1,9 +1,9 @@
 {
   "name": "auto-forge",
-  "version": "0.1.0",
-  "description": "全自动多 Phase 工作流引擎，支持多代理并行评审、断点续跑、自动归档",
+  "version": "0.2.0",
+  "description": "Multi-phase workflow engine with automatic task decomposition, parallel multi-agent review, complete Git version control, breakpoint resume and rollback support. | 全自动多 Phase 工作流引擎，支持多代理并行评审、断点续跑、自动归档",
   "author": {
-    "name": "yao"
+    "name": "YaoIsAI"
   },
   "license": "MIT",
   "keywords": [
@@ -12,7 +12,9 @@
     "parallel",
     "agents",
     "review",
-    "automation"
+    "automation",
+    "git",
+    "code-review"
   ],
   "skills": ["./skills/forge"],
   "hooks": "./hooks/hooks.json"
