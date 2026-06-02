@@ -1,10 +1,10 @@
 ---
 name: forge
 description: >
-  全自动多 Phase 工作流引擎。自动拆分任务、编码、多代理并行评审、修复、归档。
-  使用方式: /forge <任务描述>
-  触发词: forge, 全自动, 无人值守, 多代理评审, 并行代理
-argument-hint: <任务描述或需求文件路径> 或 --resume 从断点继续 或 --revert <阶段号> 回撤 或 --log 查看历史
+  Multi-phase workflow engine with automatic task decomposition, parallel multi-agent review, complete Git version control.
+  Usage: /forge <task description>
+  Triggers: forge, workflow, automation, parallel agents, code review
+argument-hint: <task description or requirements file> or --resume to continue or --revert <phase-id> to rollback or --log to view history
 allowed-tools:
   - Read
   - Write
@@ -20,9 +20,165 @@ allowed-tools:
 disable-model-invocation: true
 ---
 
-# Forge - 全自动工作流引擎
+# Forge - Multi-Phase Workflow Engine
 
-执行全自动多 Phase 工作流，包含并行 AI 评审，完整 Git 版本控制。
+**English** | **中文**
+
+Execute fully automated multi-phase workflows with parallel AI review and complete Git version control.
+
+---
+
+## English
+
+### Prerequisites
+
+- `git` - Version control
+- `jq` - JSON processing
+- Build tools for your language (npm/cargo/python/go)
+- `claude` - Claude Code CLI
+
+### Important: Permission Mode
+
+Forge requires `bypassPermissions` mode for fully automatic execution.
+
+**Without bypass mode:**
+- Every Bash command, file modification, Git operation requires manual confirmation
+- You need to type `y` or click confirm each time
+- Cannot achieve "unattended" development
+
+**With bypass mode:**
+- All operations auto-approved, no confirmation needed
+- True "one-click start, fully automatic"
+- Recommended only for trusted projects
+
+### Usage
+
+#### Start Claude Code (Important)
+
+```bash
+# Method 1: Command line parameter (Recommended)
+claude --permission-mode bypassPermissions
+
+# Method 2: Start in project directory
+cd /path/to/your/project
+claude --permission-mode bypassPermissions
+```
+
+#### Use Forge Command
+
+```
+/forge Implement a user authentication module with JWT + OAuth2
+/forge --resume              # Resume from breakpoint
+/forge --revert 2            # Revert to Phase 2
+/forge --log                 # View git history
+```
+
+#### Complete Workflow
+
+```bash
+# 1. Start Claude Code (must use bypassPermissions)
+claude --permission-mode bypassPermissions
+
+# 2. Enter project directory
+cd /path/to/your/project
+
+# 3. Install hooks (first time)
+bash ~/.claude/skills/forge/scripts/setup-hooks.sh
+
+# 4. Use forge
+/forge Implement a user authentication module with JWT + OAuth2
+
+# 5. Wait for automatic completion (no manual intervention needed)
+```
+
+### Troubleshooting
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| Still requires manual confirmation | Not using bypass mode | Restart with `claude --permission-mode bypassPermissions` |
+| Hooks not working | Hooks not installed | Run `bash ~/.claude/skills/forge/scripts/setup-hooks.sh` |
+| State file not found | Forge not initialized | Run `/forge your task description` |
+| View logs | - | `tail -50 .forge-hook.log` |
+| Rollback | - | `/forge --revert 2` or `git revert <commit-hash>` |
+
+---
+
+## 中文
+
+### 前置条件
+
+- `git` - 版本控制
+- `jq` - JSON 处理
+- 各语言构建工具（npm/cargo/python/go）
+- `claude` - Claude Code CLI
+
+### 重要提示：权限模式
+
+Forge 需要 `bypassPermissions` 权限模式才能实现全自动执行。
+
+**如果不使用 bypass 模式：**
+- 每次 Bash 命令、文件修改、Git 操作都会弹出确认提示
+- 需要手动输入 `y` 或点击确认
+- 无法实现"无人值守"开发
+
+**如果使用 bypass 模式：**
+- 所有操作自动批准，无需确认
+- 真正的"一键启动，全程自动"
+- 建议仅在可信项目中使用
+
+### 使用方式
+
+#### 启动 Claude Code（重要）
+
+```bash
+# 方式 1: 命令行参数（推荐）
+claude --permission-mode bypassPermissions
+
+# 方式 2: 在项目目录启动
+cd /path/to/your/project
+claude --permission-mode bypassPermissions
+```
+
+#### 使用 Forge 命令
+
+```
+/forge 实现一个用户认证模块，支持 JWT + OAuth2
+/forge --resume              # 从断点继续
+/forge --revert 2            # 回撤到 Phase 2 完成后的状态
+/forge --log                 # 查看所有 Phase 的 git 历史
+```
+
+#### 完整使用流程
+
+```bash
+# 1. 启动 Claude Code（必须带 bypassPermissions）
+claude --permission-mode bypassPermissions
+
+# 2. 进入项目目录
+cd /path/to/your/project
+
+# 3. 安装 hooks（首次使用）
+bash ~/.claude/skills/forge/scripts/setup-hooks.sh
+
+# 4. 使用 forge
+/forge 实现一个用户认证模块，支持 JWT + OAuth2
+
+# 5. 等待自动完成（无需任何人工干预）
+```
+
+### 故障排除
+
+| 问题 | 原因 | 解决方案 |
+|------|------|----------|
+| 仍然需要手动确认 | 未使用 bypass 模式 | 重启 `claude --permission-mode bypassPermissions` |
+| Hook 未生效 | Hooks 未安装 | 运行 `bash ~/.claude/skills/forge/scripts/setup-hooks.sh` |
+| 状态文件不存在 | Forge 未初始化 | 运行 `/forge 你的任务描述` |
+| 查看日志 | - | `tail -50 .forge-hook.log` |
+| 回滚 | - | `/forge --revert 2` 或 `git revert <commit-hash>` |
+
+---
+
+## Workflow
 
 ## 前置条件
 
