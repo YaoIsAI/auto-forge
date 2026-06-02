@@ -44,13 +44,13 @@ Forge requires `bypassPermissions` mode for fully automatic execution.
 
 ### Installation
 
-#### Option 1: Install from Marketplace (Recommended)
+#### Option 1: Install from Marketplace (Coming Soon)
 
 ```bash
-/plugin install auto-forge@claude-plugins-official
+/plugin install auto-forge
 ```
 
-> Note: Requires PR approval. Check status: https://github.com/anthropics/claude-plugins-official/pull/2153
+> Note: Plugin submitted to official marketplace, pending Anthropic review.
 
 #### Option 2: Install from GitHub
 
@@ -215,13 +215,13 @@ Forge 需要 `bypassPermissions` 权限模式才能实现全自动执行。
 
 ### 安装方式
 
-#### 方式 1: 从官方市场安装（推荐）
+#### 方式 1: 从官方市场安装（即将上线）
 
 ```bash
-/plugin install auto-forge@claude-plugins-official
+/plugin install auto-forge
 ```
 
-> 注意: 需要 PR 审核通过。查看状态: https://github.com/anthropics/claude-plugins-official/pull/2153
+> 注意: 插件已提交官方市场，等待 Anthropic 审核。
 
 #### 方式 2: 从 GitHub 安装
 
@@ -351,7 +351,7 @@ git revert <commit-hash>
 ## Links
 
 - **GitHub**: https://github.com/YaoIsAI/auto-forge
-- **Marketplace PR**: https://github.com/anthropics/claude-plugins-official/pull/2153
+- **Marketplace**: Submitted, pending review
 
 ## License
 
