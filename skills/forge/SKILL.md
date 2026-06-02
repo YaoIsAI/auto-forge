@@ -29,8 +29,38 @@ disable-model-invocation: true
 - `git` - 版本控制
 - `jq` - JSON 处理
 - 各语言构建工具（npm/cargo/python/go）
+- `claude` - Claude Code CLI
+
+## 重要提示：权限模式
+
+Forge 需要 `bypassPermissions` 权限模式才能实现全自动执行。
+
+**如果不使用 bypass 模式：**
+- 每次 Bash 命令、文件修改、Git 操作都会弹出确认提示
+- 需要手动输入 `y` 或点击确认
+- 无法实现"无人值守"开发
+
+**如果使用 bypass 模式：**
+- 所有操作自动批准，无需确认
+- 真正的"一键启动，全程自动"
+- 建议仅在可信项目中使用
 
 ## 使用方式
+
+### 启动 Claude Code（重要）
+
+**推荐使用 bypass 模式启动，实现全自动执行：**
+
+```bash
+# 方式 1: 命令行参数（推荐）
+claude --permission-mode bypassPermissions
+
+# 方式 2: 在项目目录启动
+cd /path/to/your/project
+claude --permission-mode bypassPermissions
+```
+
+### 使用 Forge 命令
 
 ```
 /forge 实现一个用户认证模块，支持 JWT + OAuth2
@@ -38,6 +68,24 @@ disable-model-invocation: true
 /forge --resume  # 从断点继续
 /forge --revert 2  # 回撤到 Phase 2 完成后的状态
 /forge --log  # 查看所有 Phase 的 git 历史
+```
+
+### 完整使用流程
+
+```bash
+# 1. 启动 Claude Code（必须带 bypassPermissions）
+claude --permission-mode bypassPermissions
+
+# 2. 进入项目目录
+cd /path/to/your/project
+
+# 3. 安装 hooks（首次使用）
+bash ~/.claude/skills/forge/scripts/setup-hooks.sh
+
+# 4. 使用 forge
+/forge 实现一个用户认证模块，支持 JWT + OAuth2
+
+# 5. 等待自动完成（无需任何人工干预）
 ```
 
 ## 工作流程
@@ -385,4 +433,65 @@ forge(phase-3): 修复 + 归档
 ### 性能审计
 - [已修复] 问题描述
 - [待办] 建议描述（非阻塞）
+```
+
+## 故障排除
+
+### 问题 1: 仍然需要手动确认
+
+**原因**: 未使用 bypass 模式启动 Claude Code
+
+**解决**:
+```bash
+# 重新启动 Claude Code，使用 bypass 模式
+claude --permission-mode bypassPermissions
+```
+
+### 问题 2: Hook 未生效
+
+**原因**: Hooks 未安装到项目
+
+**解决**:
+```bash
+# 运行安装脚本
+bash ~/.claude/skills/forge/scripts/setup-hooks.sh
+
+# 验证安装
+ls -la .claude/*.sh
+```
+
+### 问题 3: 状态文件不存在
+
+**原因**: Forge 未初始化或状态文件被删除
+
+**解决**:
+```bash
+# 检查状态文件
+cat .forge-state.json
+
+# 如果不存在，重新运行 forge
+/forge 你的任务描述
+```
+
+### 问题 4: 查看日志
+
+```bash
+# 查看 hook 执行日志
+tail -50 .forge-hook.log
+
+# 监控 hook 状态
+bash ~/.claude/skills/forge/scripts/monitor-hooks.sh
+```
+
+### 问题 5: 回滚到之前的状态
+
+```bash
+# 查看 git 历史
+git log --oneline --grep="forge(phase"
+
+# 回撤到特定 Phase
+/forge --revert 2
+
+# 或手动回撤
+git revert <commit-hash>
 ```
