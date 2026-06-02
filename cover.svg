@@ -1,0 +1,46 @@
+<svg width="900" height="383" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="50%" style="stop-color:#16213e"/>
+      <stop offset="100%" style="stop-color:#0f3460"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 背景 -->
+  <rect width="900" height="383" fill="url(#bg)"/>
+
+  <!-- 装饰圆 -->
+  <circle cx="750" cy="100" r="200" fill="rgba(7,193,96,0.2)"/>
+  <circle cx="150" cy="300" r="150" fill="rgba(102,126,234,0.2)"/>
+
+  <!-- 标签 -->
+  <rect x="50" y="80" width="180" height="30" fill="#07c160"/>
+  <text x="60" y="100" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white">CLAUDE CODE PLUGIN</text>
+
+  <!-- 标题 -->
+  <text x="50" y="160" font-family="Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="42" font-weight="bold" fill="white">Forge - 全自动工作流引擎</text>
+
+  <!-- 副标题 -->
+  <text x="50" y="200" font-family="Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="18" fill="rgba(255,255,255,0.85)">一键启动，AI 自动完成编码、评审、修复、归档</text>
+
+  <!-- 功能标签 -->
+  <rect x="50" y="250" width="120" height="35" fill="rgba(255,255,255,0.15)"/>
+  <rect x="50" y="250" width="4" height="35" fill="#07c160"/>
+  <text x="65" y="272" font-family="Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="14" fill="white">多 Phase 执行</text>
+
+  <rect x="190" y="250" width="120" height="35" fill="rgba(255,255,255,0.15)"/>
+  <rect x="190" y="250" width="4" height="35" fill="#07c160"/>
+  <text x="205" y="272" font-family="Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="14" fill="white">四维并行评审</text>
+
+  <rect x="330" y="250" width="130" height="35" fill="rgba(255,255,255,0.15)"/>
+  <rect x="330" y="250" width="4" height="35" fill="#07c160"/>
+  <text x="345" y="272" font-family="Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="14" fill="white">Git 版本控制</text>
+
+  <rect x="480" y="250" width="100" height="35" fill="rgba(255,255,255,0.15)"/>
+  <rect x="480" y="250" width="4" height="35" fill="#07c160"/>
+  <text x="495" y="272" font-family="Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="14" fill="white">断点续跑</text>
+
+  <!-- 右侧图标 -->
+  <text x="750" y="220" font-size="100" opacity="0.15">⚡</text>
+</svg>

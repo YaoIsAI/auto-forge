@@ -53,7 +53,35 @@ disable-model-invocation: true
 7. 检查/初始化 git 仓库
 8. 根据任务复杂度拆分为多个 Phase（通常 3-7 个）
 
-### 1.1 Git 处理策略
+### 1.1 Hook 安装（重要）
+
+Forge 需要在项目中安装 hooks 才能实现全自动执行。
+
+**自动安装（推荐）：**
+```bash
+# 运行安装脚本
+bash ~/.claude/skills/forge/scripts/setup-hooks.sh
+```
+
+**手动安装（如果自动安装失败）：**
+```bash
+# 创建 .claude 目录
+mkdir -p .claude
+
+# 复制 hooks
+cp ~/.claude/skills/forge/hooks/*.sh .claude/
+
+# 复制 settings.json
+cp ~/.claude/skills/forge/settings.json .claude/
+```
+
+**验证安装：**
+```bash
+# 检查 hooks 是否已安装
+ls -la .claude/*.sh
+```
+
+### 1.2 Git 处理策略
 
 根据项目当前的 Git 状态，采取不同的处理策略：
 
