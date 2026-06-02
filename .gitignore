@@ -15,3 +15,16 @@ Thumbs.db
 # Temp files
 *.tmp
 *.temp
+
+# Non-core files (not pushed to GitHub)
+wechat-article.html
+cover.svg
+cover.png
+convert.js
+convert-svg-to-png.ps1
+
+# Forge runtime files
+.forge-state.json
+.forge-hook.log
+.forge-last-activity
+.claude-phases/
