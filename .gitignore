@@ -23,6 +23,7 @@ cover.png
 convert.js
 convert-svg-to-png.ps1
 marketing/
+tests/
 
 # Forge runtime files
 .forge-state.json
