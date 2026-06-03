@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  width: 1080px;
+  height: 1440px;
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: linear-gradient(170deg, #0a0e27 0%, #0f172a 40%, #111827 100%);
+  color: white;
+  overflow: hidden;
+  position: relative;
+}
+
+.grid-bg {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image:
+    linear-gradient(rgba(7,193,96,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(7,193,96,0.04) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+.content {
+  position: relative;
+  z-index: 10;
+  padding: 100px 80px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  margin-bottom: 50px;
+}
+.header .label {
+  font-size: 22px;
+  color: #07c160;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+.header h1 {
+  font-size: 72px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.header h1 span {
+  background: linear-gradient(135deg, #07c160, #06ae56);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.features {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.feature-row {
+  display: flex;
+  gap: 24px;
+}
+.feature-card {
+  flex: 1;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 36px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.feature-card .icon {
+  font-size: 48px;
+  margin-bottom: 8px;
+}
+.feature-card h3 {
+  font-size: 32px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+.feature-card p {
+  font-size: 22px;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+
+.feature-card.highlight {
+  flex: 2;
+  background: linear-gradient(135deg, rgba(7,193,96,0.12), rgba(102,126,234,0.12));
+  border-color: rgba(7,193,96,0.25);
+}
+
+.footer-bar {
+  margin-top: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.footer-bar .brand {
+  font-size: 32px;
+  font-weight: 700;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.footer-bar .brand span {
+  color: #07c160;
+}
+.footer-bar .info {
+  font-size: 20px;
+  color: #475569;
+  text-align: right;
+  line-height: 1.5;
+}
+</style>
+</head>
+<body>
+  <div class="grid-bg"></div>
+
+  <div class="content">
+    <div class="header">
+      <div class="label">CORE CAPABILITIES</div>
+      <h1>六大核心能力<br><span>重新定义开发效率</span></h1>
+    </div>
+
+    <div class="features">
+      <div class="feature-row">
+        <div class="feature-card">
+          <div class="icon">🧠</div>
+          <h3>智能任务拆分</h3>
+          <p>自动将复杂任务<br>分解为可执行的 Phase</p>
+        </div>
+        <div class="feature-card highlight">
+          <div class="icon">🔍</div>
+          <h3>四维并行评审</h3>
+          <p>4 个 AI 代理同时审查<br>安全 · 性能 · 规范 · 逻辑</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">📝</div>
+          <h3>Git 自动管理</h3>
+          <p>每个 Phase 自动 commit<br>完整版本历史</p>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-card">
+          <div class="icon">🔄</div>
+          <h3>断点续跑</h3>
+          <p>任务中断后<br>从断点继续</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">📊</div>
+          <h3>自动归档</h3>
+          <p>变更日志<br>评审报告自动生成</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">✅</div>
+          <h3>智能批准</h3>
+          <p>工作流中自动<br>批准安全操作</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bar">
+      <div class="brand">
+        <img src="claude-icon.png" width="32" height="32" alt="Claude Code">
+        Forge <span>× Claude Code</span>
+      </div>
+      <div class="info">Claude Code Plugin<br>github.com/YaoIsAI/auto-forge</div>
+    </div>
+  </div>
+</body>
+</html>

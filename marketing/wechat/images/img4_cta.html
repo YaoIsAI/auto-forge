@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  width: 1080px;
+  height: 1440px;
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: linear-gradient(170deg, #0a0e27 0%, #0f172a 40%, #111827 100%);
+  color: white;
+  overflow: hidden;
+  position: relative;
+}
+
+.grid-bg {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image:
+    linear-gradient(rgba(7,193,96,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(7,193,96,0.04) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+.content {
+  position: relative;
+  z-index: 10;
+  padding: 80px 80px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  margin-bottom: 36px;
+}
+.header .label {
+  font-size: 20px;
+  color: #07c160;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.header h1 {
+  font-size: 72px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.header h1 span {
+  background: linear-gradient(135deg, #07c160, #06ae56);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  font-size: 32px;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin-bottom: 30px;
+}
+
+.steps {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 24px 32px;
+}
+
+.step-num {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #07c160, #06ae56);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+}
+
+.step-content {
+  flex: 1;
+}
+
+.step-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 6px;
+}
+
+.step-desc {
+  font-size: 22px;
+  color: #94a3b8;
+}
+
+.code {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(7,193,96,0.3);
+  border-radius: 10px;
+  padding: 14px 20px;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 22px;
+  color: #07c160;
+  margin-top: 8px;
+}
+
+.info-section {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.author-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(7,193,96,0.1);
+  border: 1px solid rgba(7,193,96,0.2);
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 20px;
+  color: #07c160;
+}
+
+.wechat-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(7,193,96,0.15);
+  border: 1px solid rgba(7,193,96,0.3);
+  border-radius: 10px;
+  padding: 14px 24px;
+  font-size: 22px;
+  color: #07c160;
+  font-weight: 500;
+}
+
+.install-box {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(7,193,96,0.3);
+  border-radius: 10px;
+  padding: 16px 20px;
+  font-size: 18px;
+  color: #94a3b8;
+}
+.install-box span {
+  color: #07c160;
+}
+
+.footer-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.left {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.version {
+  font-size: 24px;
+  color: #475569;
+}
+.version strong {
+  color: #07c160;
+}
+.plugin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(212,165,116,0.15);
+  border: 1px solid rgba(212,165,116,0.3);
+  border-radius: 100px;
+  padding: 10px 16px;
+  font-size: 16px;
+  color: #d4a574;
+  width: fit-content;
+}
+
+.cta-box {
+  background: linear-gradient(135deg, #07c160, #06ae56);
+  border-radius: 16px;
+  padding: 28px 48px;
+  text-align: center;
+}
+.cta-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 8px;
+}
+.cta-url {
+  font-size: 22px;
+  color: rgba(255,255,255,0.9);
+}
+</style>
+</head>
+<body>
+  <div class="grid-bg"></div>
+
+  <div class="content">
+    <div class="header">
+      <div class="label">GET STARTED</div>
+      <h1>开始使用 <span>Forge</span></h1>
+    </div>
+
+    <p class="subtitle">让 AI 帮你写代码、审代码、修代码</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">启动 Claude Code</div>
+          <div class="step-desc">使用 bypass 模式启动，实现全自动执行</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">输入 Forge 命令</div>
+          <div class="code">/forge &lt;你的任务描述&gt;</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">等待自动完成</div>
+          <div class="step-desc">无需任何人工干预，去喝杯咖啡 ☕</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <div style="margin-bottom: 20px;">
+        <div style="font-size: 22px; color: #07c160; font-weight: 600; margin-bottom: 14px;">📦 如何安装</div>
+        <div class="install-box">
+          打开 Claude Code，直接说：<br>
+          <span>帮我安装这个插件：https://github.com/YaoIsAI/auto-forge</span>
+        </div>
+      </div>
+
+      <div class="info-row">
+        <div class="author-badge">
+          <span>👨‍💻</span>
+          <span>作者: YaoIsAI</span>
+        </div>
+        <div class="wechat-badge">
+          <span>📢</span>
+          <span>关注公众号「码聋」</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bar">
+      <div class="left">
+        <div class="version"><strong>v0.2.0</strong> · MIT License</div>
+        <div class="plugin-badge">
+          <img src="claude-icon.png" width="16" height="16" alt="Claude Code">
+          <span>Claude Code Plugin</span>
+        </div>
+      </div>
+      <div class="cta-box">
+        <div class="cta-title">⭐ Star on GitHub</div>
+        <div class="cta-url">github.com/YaoIsAI/auto-forge</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

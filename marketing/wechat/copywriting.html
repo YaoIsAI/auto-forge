@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forge 公众号文案</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: #f5f5f5;
+  padding: 40px 20px;
+  color: #333;
+}
+.container { max-width: 680px; margin: 0 auto; }
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+.card-title .char-count {
+  font-size: 13px;
+  color: #999;
+  font-weight: 400;
+  margin-left: 8px;
+}
+.copy-btn {
+  background: #07c160;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.copy-btn:hover { background: #06ae56; }
+.copy-btn.copied { background: #0d2818; }
+
+.content { line-height: 1.8; font-size: 16px; }
+.content p { margin-bottom: 16px; }
+.content strong { color: #07c160; }
+.content code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-family: Consolas, monospace; }
+.content ul { margin: 12px 0 16px 20px; }
+.content li { margin-bottom: 8px; line-height: 1.7; }
+
+.toast {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #0d2818;
+  color: white;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-size: 14px;
+  opacity: 0;
+  transition: all 0.3s;
+  pointer-events: none;
+  z-index: 100;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- 标题 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">标题 <span class="char-count">（26字）</span></div>
+      <button class="copy-btn" onclick="copyRich('title')">复制</button>
+    </div>
+    <div class="content" id="title" data-text="😤 Claude Code 老是弹确认？这个插件帮你全部自动搞定">😤 Claude Code 老是弹确认？这个插件帮你全部自动搞定</div>
+  </div>
+
+  <!-- 副标题/摘要 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">摘要 <span class="char-count">（42字）</span></div>
+      <button class="copy-btn" onclick="copyRich('subtitle')">复制</button>
+    </div>
+    <div class="content" id="subtitle" data-text="长任务执行到一半要确认，权限审核烦死人，想抽身都不行？Forge 帮你解决一切。">长任务执行到一半要确认，权限审核烦死人，想抽身都不行？Forge 帮你解决一切。</div>
+  </div>
+
+  <!-- 正文 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">正文</div>
+      <button class="copy-btn" onclick="copyRich('body')">复制</button>
+    </div>
+    <div class="content" id="body">
+<p>😤 <strong>你是不是也遇到过这些问题？</strong></p>
+
+<p>用 Claude Code 写代码，本以为能省心，结果：</p>
+<ul>
+<li>🔄 <strong>长任务执行到一半</strong> — 突然弹出确认，打断思路</li>
+<li>🔒 <strong>权限审核烦死人</strong> — 每个操作都要点"允许"，手都点酸了</li>
+<li>😫 <strong>无法抽身</strong> — 想去喝杯咖啡，回来发现任务卡住了</li>
+<li>🤯 <strong>头大</strong> — 一个简单任务，确认了 20 次才完成</li>
+</ul>
+
+<p>━━━━━━━━━━━━━━</p>
+
+<p>💡 <strong>Forge 帮你解决一切！</strong></p>
+
+<p>Forge 是 Claude Code 的全自动工作流插件，一句话描述需求，AI 自动完成所有工作，<strong>全程无需人工干预</strong>。</p>
+
+<p>━━━━━━━━━━━━━━</p>
+
+<p>⚡ <strong>3 步告别确认地狱：</strong></p>
+<p>① 启动 Claude Code（带 bypass 模式）<br>
+② 输入 <code>/forge 你的任务描述</code><br>
+③ 去喝杯咖啡，回来看结果 ☕</p>
+
+<p>━━━━━━━━━━━━━━</p>
+
+<p>🔥 <strong>Forge 帮你搞定什么？</strong></p>
+<ul>
+<li>📋 <strong>自动拆分任务</strong> — 复杂任务自动分解，逐个击破</li>
+<li>🔍 <strong>四维并行评审</strong> — 安全、性能、规范、逻辑，4 个 AI 同时审查</li>
+<li>📝 <strong>Git 自动管理</strong> — 每个阶段自动 commit，完整版本历史</li>
+<li>🔄 <strong>断点续跑</strong> — 中断了？从断点继续，绝不重来</li>
+<li>📊 <strong>自动归档</strong> — 变更日志、评审报告，文档自动生成</li>
+<li>✅ <strong>智能批准</strong> — 工作流中自动批准，零人工干预</li>
+</ul>
+
+<p>━━━━━━━━━━━━━━</p>
+
+<p>🎯 <strong>谁需要 Forge？</strong></p>
+<ul>
+<li>长任务开发者 — 终于可以抽身了</li>
+<li>代码审查者 — AI 帮你审，省时省力</li>
+<li>学习者 — 边用边学，效率翻倍</li>
+<li>重复性工作者 — 把无聊的事交给 AI</li>
+</ul>
+
+<p>━━━━━━━━━━━━━━</p>
+
+<p>📦 <strong>如何安装：</strong></p>
+<p>打开 Claude Code，直接说：</p>
+<p><code>帮我安装这个插件：https://github.com/YaoIsAI/auto-forge</code></p>
+<p>Claude Code 会自动帮你完成安装！</p>
+
+<p>━━━━━━━━━━━━━━</p>
+
+<p>👨‍💻 <strong>作者：</strong>YaoIsAI</p>
+<p>🌐 <strong>GitHub：</strong>github.com/YaoIsAI/auto-forge</p>
+<p>📜 MIT 开源协议，欢迎 Star、Fork、PR！</p>
+
+<p>━━━━━━━━━━━━━━</p>
+
+<p>📢 <strong>关注公众号「码聋」</strong>，了解 Forge 最新动态、使用技巧、更新日志！</p>
+</div>
+  </div>
+
+  <!-- 标签 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">标签</div>
+      <button class="copy-btn" onclick="copyRich('tags')">复制</button>
+    </div>
+    <div class="content" id="tags" data-text="#ClaudeCode #AI编程 #代码审查 #自动化开发 #开源插件 #工作流引擎 #多代理 #代码效率">#ClaudeCode #AI编程 #代码审查 #自动化开发 #开源插件 #工作流引擎 #多代理 #代码效率</div>
+  </div>
+
+  <!-- 一键复制全部 -->
+  <div class="card" style="text-align: center; padding: 24px;">
+    <button class="copy-btn" style="font-size: 16px; padding: 12px 40px;" onclick="copyAllRich()">
+      📋 一键复制全部文案
+    </button>
+  </div>
+
+</div>
+
+<div class="toast" id="toast">✅ 已复制到剪贴板</div>
+
+<script>
+function getHTML(id) {
+  return document.getElementById(id).innerHTML.trim();
+}
+
+function getText(id) {
+  return document.getElementById(id).getAttribute('data-text') || document.getElementById(id).innerText.trim();
+}
+
+function copyRich(id) {
+  const html = getHTML(id);
+  const text = getText(id);
+  const blob = new Blob([html], { type: 'text/html' });
+  const item = new ClipboardItem({ 'text/html': blob, 'text/plain': new Blob([text], { type: 'text/plain' }) });
+  navigator.clipboard.write([item]).then(() => {
+    showToast();
+    const btn = event.target;
+    btn.textContent = '✅ 已复制';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '复制'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function copyAllRich() {
+  const title = getText('title');
+  const subtitle = getText('subtitle');
+  const body = getHTML('body');
+  const tags = getText('tags');
+
+  const html = `<h2>${title}</h2><p><em>${subtitle}</em></p><hr>${body}<hr><p>${tags}</p>`;
+  const text = `【标题】\n${title}\n\n【摘要】\n${subtitle}\n\n【正文】\n${document.getElementById('body').innerText.trim()}\n\n【标签】\n${tags}`;
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const item = new ClipboardItem({ 'text/html': blob, 'text/plain': new Blob([text], { type: 'text/plain' }) });
+  navigator.clipboard.write([item]).then(() => {
+    showToast();
+    const btn = event.target;
+    btn.textContent = '✅ 已复制全部';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 一键复制全部文案'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function showToast() {
+  const toast = document.getElementById('toast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 1500);
+}
+</script>
+
+</body>
+</html>

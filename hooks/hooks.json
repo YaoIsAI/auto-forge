@@ -1,5 +1,5 @@
 {
-  "description": "Forge auto-approval and self-healing hooks",
+  "description": "Forge auto-approval, self-healing, and context management hooks",
   "hooks": {
     "PreToolUse": [
       {
@@ -21,6 +21,16 @@
             "asyncRewake": true,
             "rewakeMessage": "Forge workflow incomplete. Continuing to next phase.",
             "rewakeSummary": "Forge self-heal triggered"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/pre-compact.sh"
           }
         ]
       }

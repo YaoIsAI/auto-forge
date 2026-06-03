@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  width: 1080px;
+  height: 1440px;
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: linear-gradient(170deg, #0a0e27 0%, #0f172a 40%, #111827 100%);
+  color: white;
+  overflow: hidden;
+  position: relative;
+}
+
+.grid-bg {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image:
+    linear-gradient(rgba(102,126,234,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(102,126,234,0.04) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+.content {
+  position: relative;
+  z-index: 10;
+  padding: 100px 80px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  margin-bottom: 50px;
+}
+.header .label {
+  font-size: 22px;
+  color: #667eea;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+.header h1 {
+  font-size: 72px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.header h1 span {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.agents {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.agent {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 40px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border-left: 5px solid;
+}
+.agent:nth-child(1) { border-left-color: #ef4444; }
+.agent:nth-child(2) { border-left-color: #f59e0b; }
+.agent:nth-child(3) { border-left-color: #3b82f6; }
+.agent:nth-child(4) { border-left-color: #8b5cf6; }
+
+.agent-icon {
+  font-size: 48px;
+}
+.agent-title {
+  font-size: 32px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+.agent-desc {
+  font-size: 22px;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+.agent-tag {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  font-size: 18px;
+  color: #07c160;
+}
+
+.footer-bar {
+  margin-top: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.footer-bar .brand {
+  font-size: 32px;
+  font-weight: 700;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.footer-bar .brand span {
+  color: #07c160;
+}
+.footer-bar .info {
+  font-size: 20px;
+  color: #475569;
+  text-align: right;
+  line-height: 1.5;
+}
+</style>
+</head>
+<body>
+  <div class="grid-bg"></div>
+
+  <div class="content">
+    <div class="header">
+      <div class="label">PARALLEL INTELLIGENCE</div>
+      <h1>四维并行评审<br><span>AI 代码守护者</span></h1>
+    </div>
+
+    <div class="agents">
+      <div class="agent">
+        <div class="agent-icon">🛡️</div>
+        <div class="agent-title">安全审计</div>
+        <div class="agent-desc">SQL 注入、XSS、CSRF<br>认证授权、敏感数据暴露</div>
+        <div class="agent-tag">Security Audit</div>
+      </div>
+      <div class="agent">
+        <div class="agent-icon">⚡</div>
+        <div class="agent-title">性能审计</div>
+        <div class="agent-desc">N+1 查询、缓存策略<br>时间复杂度、内存泄漏</div>
+        <div class="agent-tag">Performance Audit</div>
+      </div>
+      <div class="agent">
+        <div class="agent-icon">📐</div>
+        <div class="agent-title">规范审计</div>
+        <div class="agent-desc">命名规范、代码格式<br>重复代码、注释质量</div>
+        <div class="agent-tag">Style Audit</div>
+      </div>
+      <div class="agent">
+        <div class="agent-icon">🧩</div>
+        <div class="agent-title">逻辑审查</div>
+        <div class="agent-desc">边界条件、错误处理<br>类型安全、业务完整性</div>
+        <div class="agent-tag">Logic Review</div>
+      </div>
+    </div>
+
+    <div class="footer-bar">
+      <div class="brand">
+        <img src="claude-icon.png" width="32" height="32" alt="Claude Code">
+        Forge <span>× Claude Code</span>
+      </div>
+      <div class="info">Powered by Anthropic<br>github.com/YaoIsAI/auto-forge</div>
+    </div>
+  </div>
+</body>
+</html>
