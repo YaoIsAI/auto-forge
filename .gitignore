@@ -22,9 +22,15 @@ cover.svg
 cover.png
 convert.js
 convert-svg-to-png.ps1
+marketing/
 
 # Forge runtime files
 .forge-state.json
 .forge-hook.log
 .forge-last-activity
+.forge-context-snapshot.md
+.forge-timeout
+.forge-loop-detect
+.forge-monitor/
 .claude-phases/
+.forge-state.session-*.json
