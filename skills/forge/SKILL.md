@@ -4,7 +4,7 @@ description: >
   Multi-phase workflow engine with automatic task decomposition, parallel multi-agent review, complete Git version control.
   Usage: /forge <task description>
   Triggers: forge, workflow, automation, parallel agents, code review
-argument-hint: <task description or requirements file> or --resume to continue or --revert <phase-id> to rollback or --log to view history
+argument-hint: <task> or --resume/--revert/--log
 allowed-tools:
   - Read
   - Write
